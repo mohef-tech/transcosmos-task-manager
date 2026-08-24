@@ -12,7 +12,7 @@ export function useAuth() {
   useEffect(() => {
     auth
       .me()
-      .then((res) => setUser(res.user))
+      .then((res) => setUser(res))
       .catch(() => {
         removeToken();
         router.replace("/login");

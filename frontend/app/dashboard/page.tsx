@@ -14,9 +14,9 @@ import { usePolling } from "@/app/hooks/usePolling";
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const STATUS_LABEL: Record<TaskStatus, string> = {
-  pending: "Pending",
+  todo: "Todo",
   in_progress: "In Progress",
-  completed: "Completed",
+  done: "Done",
 };
 
 const PRIORITY_LABEL: Record<TaskPriority, string> = {
@@ -26,9 +26,9 @@ const PRIORITY_LABEL: Record<TaskPriority, string> = {
 };
 
 const STATUS_COLOR: Record<TaskStatus, React.CSSProperties> = {
-  pending: { background: "#fef9c3", color: "#854d0e" },
+  todo: { background: "#fef9c3", color: "#854d0e" },
   in_progress: { background: "#dbeafe", color: "#1e40af" },
-  completed: { background: "#dcfce7", color: "#166534" },
+  done: { background: "#dcfce7", color: "#166534" },
 };
 
 const PRIORITY_COLOR: Record<TaskPriority, React.CSSProperties> = {
@@ -40,7 +40,7 @@ const PRIORITY_COLOR: Record<TaskPriority, React.CSSProperties> = {
 const EMPTY_FORM: TaskPayload = {
   title: "",
   description: "",
-  status: "pending",
+  status: "todo",
   priority: "medium",
   due_date: "",
 };

@@ -63,7 +63,7 @@ export const auth = {
       body: JSON.stringify({ email, password }),
     }),
 
-  me: () => request<{ user: AuthUser }>("/auth/me"),
+  me: () => request<AuthUser>("/auth/me"),
 
   logout: () =>
     request<void>("/auth/logout", { method: "POST" }),
@@ -71,7 +71,7 @@ export const auth = {
 
 // ─── Tasks ───────────────────────────────────────────────────────────────────
 
-export type TaskStatus = "pending" | "in_progress" | "completed";
+export type TaskStatus = "todo" | "in_progress" | "done";
 export type TaskPriority = "low" | "medium" | "high";
 
 // ─── Attachments ─────────────────────────────────────────────────────────────

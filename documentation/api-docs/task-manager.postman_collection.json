@@ -1,0 +1,402 @@
+{
+  "info": {
+    "_postman_id": "tm-transcosmos-2026",
+    "name": "Transcosmos Task Manager API",
+    "description": "Full API collection for the Transcosmos Task Manager (Laravel 12 + Sanctum).\n\nUsage:\n1. Import this file and the accompanying `task-manager.postman_environment.json`.\n2. Run the **Auth / Login** request first — the test script auto-saves the token to `{{token}}`.\n3. All other requests use `{{base_url}}` and `{{token}}` from the environment.\n\nDefault credentials: admin@contoh.com / password",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Authentication endpoints — login, logout, and current user info.",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    pm.environment.set('token', body.token);",
+                  "    pm.environment.set('user_id', body.user.id);",
+                  "    console.log('Token saved:', body.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@contoh.com\",\n  \"password\": \"password\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Authenticate with email and password. On success, the test script automatically saves `token` and `user_id` to the environment.\n\n**Response 200:**\n```json\n{\n  \"user\": { \"id\": 1, \"name\": \"Admin\", \"email\": \"admin@contoh.com\", \"role\": \"admin\" },\n  \"token\": \"1|abc123...\"\n}\n```"
+          }
+        },
+        {
+          "name": "Get Current User (me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Returns the currently authenticated user's profile.\n\n**Response 200:**\n```json\n{ \"id\": 1, \"name\": \"Admin\", \"email\": \"admin@contoh.com\", \"role\": \"admin\" }\n```"
+          }
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.environment.unset('token');",
+                  "    pm.environment.unset('user_id');",
+                  "    console.log('Token cleared from environment.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Invalidates the current Bearer token. The test script clears `token` from the environment.\n\n**Response 200:**\n```json\n{ \"message\": \"Logged out successfully\" }\n```"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "description": "Task CRUD — list, create, show, update, delete. All require authentication.",
+      "item": [
+        {
+          "name": "List Tasks",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks?status=todo&priority=high&sort_by=due_date&sort_dir=asc&per_page=15&page=1",
+              "host": ["{{base_url}}"],
+              "path": ["tasks"],
+              "query": [
+                { "key": "status", "value": "todo", "description": "Filter by status: todo | in_progress | done", "disabled": false },
+                { "key": "priority", "value": "high", "description": "Filter by priority: low | medium | high", "disabled": true },
+                { "key": "assigned_to", "value": "2", "description": "Filter by assigned user ID", "disabled": true },
+                { "key": "search", "value": "bug fix", "description": "Search in task title", "disabled": true },
+                { "key": "sort_by", "value": "due_date", "description": "Sort field: created_at | due_date | priority", "disabled": true },
+                { "key": "sort_dir", "value": "asc", "description": "Sort direction: asc | desc", "disabled": true },
+                { "key": "per_page", "value": "15", "description": "Items per page (1–100, default: 15)" },
+                { "key": "page", "value": "1", "description": "Page number" }
+              ]
+            },
+            "description": "Returns paginated list of tasks. Supports filtering by status, priority, and assigned_to. Supports sorting and full-text search on title.\n\n**Paginated Response:**\n```json\n{\n  \"data\": [ { ...task... } ],\n  \"links\": { \"first\": \"...\", \"last\": \"...\", \"prev\": null, \"next\": \"...\" },\n  \"meta\": { \"current_page\": 1, \"last_page\": 3, \"per_page\": 15, \"total\": 42 }\n}\n```"
+          }
+        },
+        {
+          "name": "Create Task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const body = pm.response.json();",
+                  "    pm.environment.set('task_id', body.id);",
+                  "    console.log('task_id saved:', body.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Fix login bug on mobile\",\n  \"description\": \"The login button is unresponsive on iOS Safari. Investigate and fix.\",\n  \"status\": \"todo\",\n  \"priority\": \"high\",\n  \"assigned_user_id\": 2,\n  \"due_date\": \"2026-09-01\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/tasks",
+              "host": ["{{base_url}}"],
+              "path": ["tasks"]
+            },
+            "description": "Creates a new task. `created_by` is automatically set to the authenticated user.\n\nOn success, the test script saves `task_id` to the environment for use in subsequent requests.\n\n**Required fields:** `title`\n**Optional fields:** `description`, `status` (default: `todo`), `priority` (default: `medium`), `assigned_user_id`, `due_date` (must be today or future)\n\n**Response 201:** Full task object with `assignedUser` and `creator` relations."
+          }
+        },
+        {
+          "name": "Show Task",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/{{task_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["tasks", "{{task_id}}"]
+            },
+            "description": "Returns a single task with all relations loaded: `assignedUser`, `creator`, `attachments`, and `comments` (with commenter info).\n\n**Response 200:** Task object with full relations."
+          }
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Fix login bug on mobile (updated)\",\n  \"status\": \"in_progress\",\n  \"priority\": \"high\",\n  \"due_date\": \"2026-09-05\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/tasks/{{task_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["tasks", "{{task_id}}"]
+            },
+            "description": "Updates an existing task. Only the **task creator** or an **admin** can update.\n\nAll fields are optional (PATCH-like behavior). Only send fields you want to change.\n\n**Response 403:** If authenticated user is neither the creator nor an admin."
+          }
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/{{task_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["tasks", "{{task_id}}"]
+            },
+            "description": "Deletes a task. Only the **task creator** or an **admin** can delete.\n\n**Response 200:**\n```json\n{ \"message\": \"Task deleted successfully\" }\n```\n**Response 403:** If not authorized."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Attachments",
+      "description": "File attachment endpoints — upload, download, and delete. Files are stored in `storage/app/public/attachments/{task_id}/`. Images get a 300×300 thumbnail via PHP GD.",
+      "item": [
+        {
+          "name": "Upload Attachment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const body = pm.response.json();",
+                  "    pm.environment.set('attachment_id', body.id);",
+                  "    console.log('attachment_id saved:', body.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "File to upload. Allowed types: jpg, jpeg, png, gif, webp, pdf, doc, docx, xls, xlsx, txt, csv, zip. Max 10 MB."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/tasks/{{task_id}}/attachments",
+              "host": ["{{base_url}}"],
+              "path": ["tasks", "{{task_id}}", "attachments"]
+            },
+            "description": "Upload a file to a specific task. Send as `multipart/form-data` with key `file`.\n\n**Allowed MIME types:** image/jpeg, image/png, image/gif, image/webp, application/pdf, .doc, .docx, .xls, .xlsx, text/plain, text/csv, application/zip\n**Max size:** 10 MB\n\nIf the file is an image, a 300×300 cover-crop thumbnail is automatically generated.\n\nOn success, the test script saves `attachment_id` to the environment.\n\n**Response 201:**\n```json\n{\n  \"id\": 1,\n  \"task_id\": 5,\n  \"file_name\": \"screenshot.png\",\n  \"file_size\": 204800,\n  \"mime_type\": \"image/png\",\n  \"url\": \"http://localhost:8000/storage/attachments/5/uuid.png\",\n  \"thumbnail_url\": \"http://localhost:8000/storage/attachments/5/thumb_uuid.jpg\",\n  \"uploaded_at\": \"2026-08-24T09:00:00.000000Z\"\n}\n```"
+          }
+        },
+        {
+          "name": "Download Attachment",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/{{task_id}}/attachments/{{attachment_id}}/download",
+              "host": ["{{base_url}}"],
+              "path": ["tasks", "{{task_id}}", "attachments", "{{attachment_id}}", "download"]
+            },
+            "description": "Downloads the file as a binary stream with the original filename as `Content-Disposition: attachment`.\n\nIn the frontend, this is triggered via `fetch()` + Blob URL because `Authorization` headers cannot be sent via a plain `<a href>` link.\n\n**Response:** Binary file stream with original filename."
+          }
+        },
+        {
+          "name": "Delete Attachment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/{{task_id}}/attachments/{{attachment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["tasks", "{{task_id}}", "attachments", "{{attachment_id}}"]
+            },
+            "description": "Deletes the attachment record and its physical file from disk. If a thumbnail exists, it is also deleted.\n\n**Response 200:**\n```json\n{ \"message\": \"Attachment deleted successfully\" }\n```"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Export",
+      "description": "CSV export endpoints — dispatch a background export job, list generated files, and download them. The `queue:work` process must be running for exports to be generated.",
+      "item": [
+        {
+          "name": "Dispatch CSV Export",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Export is async — wait a few seconds, then call List Exports",
+                  "console.log('Export job dispatched. Run queue:work if not already running.');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"todo\",\n  \"priority\": \"high\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/exports/tasks",
+              "host": ["{{base_url}}"],
+              "path": ["exports", "tasks"]
+            },
+            "description": "Dispatches a background job (`ExportTasksCsv`) to generate a filtered CSV file.\n\nAll body fields are **optional**. Omit them to export all tasks.\n\n**Optional filters:**\n- `status`: `todo` | `in_progress` | `done`\n- `priority`: `low` | `medium` | `high`\n- `assigned_to`: user ID (integer)\n\n**Response 202 (Accepted):**\n```json\n{\n  \"message\": \"Export job dispatched. File will be available in storage/exports/ shortly.\",\n  \"filters\": { \"status\": \"todo\", \"priority\": \"high\" }\n}\n```\n\n> The job runs asynchronously. The CSV file appears after the queue worker processes the job."
+          }
+        },
+        {
+          "name": "List Exports",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const files = pm.response.json();",
+                  "    if (files.length > 0) {",
+                  "        pm.environment.set('export_filename', files[0].filename);",
+                  "        console.log('Latest export:', files[0].filename);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/exports/tasks",
+              "host": ["{{base_url}}"],
+              "path": ["exports", "tasks"]
+            },
+            "description": "Lists all generated CSV files in `storage/exports/`, sorted by most recent first.\n\nThe test script saves the latest filename to `{{export_filename}}`.\n\n**Response 200:**\n```json\n[\n  {\n    \"filename\": \"tasks_2026-08-24_090000.csv\",\n    \"size_bytes\": 4096,\n    \"generated_at\": \"2026-08-24 09:00:00\",\n    \"download_url\": \"http://localhost:8000/api/exports/tasks/tasks_2026-08-24_090000.csv\"\n  }\n]\n```"
+          }
+        },
+        {
+          "name": "Download Export CSV",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/exports/tasks/{{export_filename}}",
+              "host": ["{{base_url}}"],
+              "path": ["exports", "tasks", "{{export_filename}}"]
+            },
+            "description": "Downloads a specific CSV export file by filename. The filename comes from the **List Exports** response.\n\n**Response:** Binary CSV stream (`Content-Type: text/csv`).\n\n**Response 404:** If the file does not exist."
+          }
+        }
+      ]
+    }
+  ]
+}
