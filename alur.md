@@ -89,15 +89,15 @@ transcosmos-task-manager/        ← project root (~/Projects/transcosmos-task-m
 - [x] 5. Task CRUD API — index ✅ | store ✅ | show ✅ | update ✅ | destroy ✅ (+ filter, sort, pagination)
 - [x] 6. File Upload API — upload ✅ | thumbnail (GD) ✅ | download ✅ | delete ✅ (validasi mime+ext, max 10MB)
 - [x] 7. Queue Jobs — NotifyTaskAssigned ✅ (email ke log) | ExportTasksCsv ✅ (CSV tersimpan, list+download endpoint jalan)
-- [ ] 8. Setup Next.js
-- [ ] 9. Login Page
-- [ ] 10. Dashboard CRUD
-- [ ] 11. Upload UI
-- [ ] 12. Real-time Update
+- [x] 8. Setup Next.js — `create-next-app` ✅ | TypeScript ✅ | Tailwind CSS ✅ | App Router ✅ (359 packages, 0 vulnerabilities)
+- [x] 9. Login Page — form login ✅ | token localStorage ✅ | redirect dashboard ✅
+- [x] 10. Dashboard CRUD — list ✅ | create ✅ | edit ✅ | delete ✅ | search + filter + pagination ✅
+- [x] 11. Upload UI — DropZone drag-drop ✅ | multi-file upload ✅ | thumbnail preview ✅ | download (auth header) ✅ | delete ✅
+- [x] 12. Real-time Update — polling 10s ✅ | pause on hidden tab ✅ | resume on focus ✅ | live dot indicator ✅
 - [ ] 13. Dokumentasi
 - [ ] 14. Submit
 
-**Status saat ini: Backend 100% selesai — Auth API, Task CRUD, File Upload + Thumbnail, Queue Jobs (notif + export CSV) sudah terkonfirmasi berjalan. Siap masuk ke setup Next.js (Step 8).**
+**Status saat ini: Step 8–12 selesai — Frontend lengkap (login, dashboard CRUD, upload drag-drop, real-time polling). Siap ke Step 13 (Dokumentasi).**
 
 ---
 
